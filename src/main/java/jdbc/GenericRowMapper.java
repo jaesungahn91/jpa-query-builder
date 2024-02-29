@@ -4,7 +4,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Transient;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,11 +19,11 @@ public class GenericRowMapper<T> implements RowMapper<T> {
     }
 
     @Override
-    public T mapRow(final ResultSet resultSet) {
+    public T mapRow(final ResultSet resultSet) throws SQLException {
         try {
             final List<Field> fields = getFields();
             return toInstance(resultSet, fields);
-        } catch (Exception e) {
+        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }
@@ -40,7 +42,7 @@ public class GenericRowMapper<T> implements RowMapper<T> {
         return field.getName();
     }
 
-    private T toInstance(ResultSet resultSet, List<Field> fields) throws Exception {
+    private T toInstance(ResultSet resultSet, List<Field> fields) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, SQLException {
         T instance = clazz.getDeclaredConstructor().newInstance();
         for (Field field : fields) {
             field.setAccessible(true);
